@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚙️ Steampunk Chronometry Clock — Nixie World Engine</title>
+
+  <!-- TailwindCSS for layout -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Favicon (optional aesthetic touch) -->
+  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/3/3b/Nixie_tube_1.svg" type="image/svg+xml">
+
+  <!-- Custom CSS will go here later -->
+  <style id="customStyles">
+    /* Placeholder for massive CSS — will be injected in Part 2 */
+  </style>
+</head>
+
+<body class="bg-black text-gray-200 min-h-screen flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto">
+  
+  <!-- ========================================================= -->
+  <!-- HERO TITLE + CHRONOS INSCRIPTION -->
+  <!-- ========================================================= -->
+  <header class="text-center mt-6 mb-4">
+    <h1 class="text-4xl md:text-6xl font-bold text-amber-500 font-[Cinzel Decorative] drop-shadow-lg">
+      ⚙️ Chronos Nixie World Engine
+    </h1>
+    <p class="text-lg text-gray-400 italic mt-2">"Where Time Breathes Steam and Sparks" — v5.0</p>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- CLOCK HOUSING CORE -->
+  <!-- ========================================================= -->
+  <main id="clockCore" class="relative clock-housing mx-auto flex flex-col items-center shadow-2xl border-4 border-amber-700/40 rounded-3xl p-6">
+    
+    <!-- Decorative Bolts & Gears -->
+    <div class="bolt bolt-tl"></div>
+    <div class="bolt bolt-tr"></div>
+    <div class="bolt bolt-bl"></div>
+    <div class="bolt bolt-br"></div>
+
+    <!-- Gear Background Animation -->
+    <div class="absolute inset-0 pointer-events-none z-0 opacity-10">
+      <canvas id="gearCanvas" class="w-full h-full"></canvas>
+    </div>
+
+    <!-- Full Time Display -->
+    <div class="z-10 text-center mb-4">
+      <h2 id="timezoneDisplay" class="text-2xl text-yellow-400 font-semibold">Loading timezone...</h2>
+      <p id="fullTimeDisplay" class="text-sm text-gray-400"></p>
+    </div>
+
+    <!-- Nixie Tube Time Display -->
+    <section class="main-display flex flex-row justify-center items-center gap-4 z-20 mb-4">
+      
+      <!-- Hour Tubes -->
+      <div class="nixie-tube" id="tube-hour-tens"><div id="hourTens" class="time-digit">0</div></div>
+      <div class="nixie-tube" id="tube-hour-units"><div id="hourUnits" class="time-digit">0</div></div>
+
+      <!-- Separator -->
+      <div class="separator">
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+
+      <!-- Minute Tubes -->
+      <div class="nixie-tube" id="tube-minute-tens"><div id="minuteTens" class="time-digit">0</div></div>
+      <div class="nixie-tube" id="tube-minute-units"><div id="minuteUnits" class="time-digit">0</div></div>
+
+      <!-- Second & AM/PM Section -->
+      <div class="nixie-tube short-nixie w-16 h-40 bg-transparent border-none">
+        <div class="flex flex-col justify-between h-full py-1 items-center">
+          <div class="flex flex-col items-center">
+            <span id="ampm-am" class="text-xs text-amber-300">AM</span>
+            <span id="ampm-pm" class="text-xs text-gray-500">PM</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <div id="secondTens" class="date-digit text-lg">0</div>
+            <div id="secondUnits" class="date-digit text-lg">0</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Date Section -->
+    <section class="date-section flex flex-row gap-3 justify-center items-center z-10">
+      <div class="date-container">
+        <span class="date-label">DAY</span>
+        <div id="day" class="date-digit">00</div>
+      </div>
+      <div class="date-container">
+        <span class="date-label">MONTH</span>
+        <div id="month" class="date-digit">00</div>
+      </div>
+      <div class="date-container w-20">
+        <span class="date-label">YEAR</span>
+        <div id="year" class="date-digit">0000</div>
+      </div>
+    </section>
+
+    <!-- Control Panel -->
+    <section id="controlPanel" class="control-panel mt-6 flex flex-col items-center w-full z-20">
+      
+      <!-- Timezone Selector -->
+      <div class="w-full mb-4">
+        <select id="timezoneSelector" class="steampunk-select"></select>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col md:flex-row gap-3 w-full justify-center">
+        <button id="factButton" class="steampunk-button bg-amber-700/60 hover:bg-amber-600/60 w-full md:w-auto">
+          🕰 Historical Fact of the Day
+        </button>
+        <button id="dossierButton" class="steampunk-button bg-purple-700/60 hover:bg-purple-600/60 w-full md:w-auto">
+          ⚙️ Generate Chronography Report
+        </button>
+        <button id="aiButton" class="steampunk-button bg-green-700/60 hover:bg-green-600/60 w-full md:w-auto">
+          🤖 Ask Chronos Engine
+        </button>
+      </div>
+
+      <!-- Fact Display -->
+      <div id="factResult" class="fact-result hidden p-3 text-sm text-yellow-300 border border-yellow-800/50 rounded bg-gray-900/70 w-full mt-3">
+        <p id="factText"></p>
+        <p id="factSource" class="text-xs mt-2 opacity-70"></p>
+      </div>
+
+      <!-- Chronography Report -->
+      <div id="dossierResult" class="fact-result hidden p-3 text-sm text-purple-300 border border-purple-800/50 rounded bg-gray-900/70 w-full mt-3">
+        <p id="dossierText"></p>
+        <p id="dossierSource" class="text-xs mt-2 opacity-70"></p>
+      </div>
+
+      <!-- AI Assistant -->
+      <div id="aiResult" class="fact-result hidden p-3 text-sm text-green-300 border border-green-800/50 rounded bg-gray-900/70 w-full mt-3">
+        <p id="aiText"></p>
+        <p id="aiSource" class="text-xs mt-2 opacity-70"></p>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loadingIndicator" class="hidden text-sm mt-4 text-gray-400 flex items-center justify-center">
+        <svg class="animate-spin h-5 w-5 mr-2 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 2v4m0 12v4m8-8h4M4 12H0m15.364-7.364l2.828 2.828M5.808 18.192l2.828-2.828M18.192 18.192l-2.828-2.828M5.808 5.808l2.828 2.828" />
+        </svg>
+        <span>Consulting the Chronoscanner...</span>
+      </div>
+
+      <!-- Audio & Visual Control Panel -->
+      <div class="mt-6 w-full flex flex-col md:flex-row justify-center gap-4">
+        <button id="soundToggle" class="steampunk-button bg-blue-700/50 hover:bg-blue-600/50">🎵 Toggle Ambience</button>
+        <button id="glowCustomize" class="steampunk-button bg-pink-700/50 hover:bg-pink-600/50">🌈 Customize Glow</button>
+        <button id="resetSettings" class="steampunk-button bg-gray-700/50 hover:bg-gray-600/50">♻️ Reset Settings</button>
+      </div>
+    </section>
+
+    <!-- Pedestal -->
+    <div class="base-pedestal"></div>
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- MODALS AND DYNAMIC ELEMENTS -->
+  <!-- ========================================================= -->
+
+  <!-- Glow Customization Modal -->
+  <div id="glowModal" class="hidden fixed inset-0 bg-black/80 flex justify-center items-center z-50">
+    <div class="bg-gray-800 rounded-xl p-6 border border-amber-700/50 shadow-2xl w-96 text-center">
+      <h2 class="text-2xl font-semibold text-amber-400 mb-3">🌈 Customize Nixie Glow</h2>
+      <p class="text-sm text-gray-400 mb-3">Choose the glow hue and intensity for your tubes.</p>
+
+      <div class="flex flex-col gap-3 items-center">
+        <label class="text-sm">Hue</label>
+        <input id="glowHue" type="range" min="0" max="360" value="30" class="w-full">
+        
+        <label class="text-sm">Intensity</label>
+        <input id="glowIntensity" type="range" min="0.2" max="2" step="0.1" value="1" class="w-full">
+
+        <button id="applyGlow" class="steampunk-button bg-green-700/60 hover:bg-green-600/60 w-full mt-3">Apply Glow</button>
+        <button id="closeGlow" class="steampunk-button bg-red-700/60 hover:bg-red-600/60 w-full">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ambient Sound -->
+  <audio id="ambientSound" loop preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2021/09/06/audio_b5b8e60b6b.mp3?filename=industrial_gear_loop-110504.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- JS Section (will come in Part 3) -->
+  <script id="mainScript">
+    // Placeholder for the large JS block (will be provided next)
+  </script>
+</body>
+</html>
